@@ -3,13 +3,16 @@ import uuid
 import numpy as np
 from flask import Flask, request, jsonify, send_from_directory
 from PIL import Image
-import tensorflow.lite as tflite
+import tflite_runtime.interpreter as tflite
 from description import description
 from location import location
+from flask_cors import CORS
 
 
 app = Flask(__name__)
+CORS(app)
 UPLOAD_FOLDER = "static/uploads"
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 # Load TFLite model
@@ -57,11 +60,10 @@ def classify_image(img: Image.Image):
             }
         else:
             lokasi_url = location.get(predicted_label, None)
-            lokasi_html = f'<a href="{lokasi_url}" target="_blank">Lihat Lokasi di Google Maps</a>' if lokasi_url else "Lokasi tidak ditemukan"
             return {
                 "label_output": f"{predicted_label} (Confidence: {confidence * 100:.2f}%)",
                 "deskripsi": description.get(predicted_label, "Deskripsi belum tersedia."),
-                "lokasi": lokasi_html,
+                "lokasi": lokasi_url if lokasi_url else None,
                 "confidence": float(confidence)
             }
 
@@ -91,5 +93,5 @@ def uploaded_file(filename):
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
 # Run server
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
+# if __name__ == "__main__":
+#     app.run(host="0.0.0.0", port=5000)

@@ -1,3 +1,5 @@
 flask
 tflite-runtime
 Pillow
+flask-cors
+numpy
